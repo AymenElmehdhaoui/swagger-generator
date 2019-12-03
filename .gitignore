@@ -1,0 +1,6 @@
+swagger.json
+node_modules
+dist
+.idea
+package-lock.json
+src/output

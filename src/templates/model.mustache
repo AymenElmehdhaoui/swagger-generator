@@ -1,0 +1,11 @@
+{{#imports}}
+import { {{.}} } from 'models';
+{{/imports}}
+
+export class {{ modelName }} {
+    {{#properties}}
+     {{key}}: {{ type }};
+    {{/properties}}
+
+    constructor() {}
+}

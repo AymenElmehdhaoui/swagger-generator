@@ -1,0 +1,21 @@
+{
+  "name": "generate-swagger",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsc && node ./dist/server.js",
+    "tsc": "tsc"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "mustache": "^3.1.0",
+    "rxjs": "^6.5.3"
+  },
+  "devDependencies": {
+    "@types/mustache": "^0.8.32",
+    "@types/node": "^12.12.14",
+    "typescript": "^3.7.2"
+  }
+}
