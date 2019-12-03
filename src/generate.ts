@@ -1,8 +1,8 @@
 import {Config} from "./models/config.model";
 import fs from "fs";
 import path from "path";
-import {Observable, Observer, of} from "rxjs";
-import {map, tap} from "rxjs/operators";
+import {Observable} from "rxjs";
+import {map} from "rxjs/operators";
 import {Property} from "./models/property.model";
 import {Model} from "./models/model.model";
 import {Utils} from "./utils";
@@ -61,13 +61,12 @@ export class Generate {
                                 type = Utils.resolveRef(typesDef.$ref);
 
                                 imports.add({name: type, filePath: Utils.toModelName(type)});
-                                // imports.add(type);
                             }
                             type = Utils.resoleTypeNumber(type);
                             if (type === 'array') {
-                                type = Utils.capitalizeFirstLetter(type);
                                 if (typesDef.items.$ref) {
                                     p.of = Utils.resolveRef(typesDef.items.$ref);
+                                    type = p.of.concat('[]');
                                     imports.add({name: p.of, filePath: Utils.toModelName(p.of)});
                                 }
                             }
@@ -94,7 +93,7 @@ export class Generate {
             .pipe(
                 map(
                     (models: Model[]) => {
-                        const folderPath = path.resolve('.', 'src/output');
+                        const folderPath = path.resolve('.', 'src', this.config.outDir);
                         Utils.mkdirs(folderPath);
                         return models;
                     }
@@ -107,10 +106,10 @@ export class Generate {
                             const modelCopy: any = {...model};
                             modelCopy.imports = Array.from(model.imports);
                             const data = mustache.render(template, modelCopy);
-                            const to = path.resolve('.', 'src/output', model.fileName.concat('.ts'));
+                            const to = path.resolve('.', 'src', this.config.outDir, model.fileName.concat('.ts'));
                             fs.writeFileSync(to, data, 'UTF-8');
-                            console.log(data)
-                        })
+                        });
+                        return models;
                     }
                 )
             )
