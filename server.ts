@@ -3,4 +3,6 @@ import {Generate} from "./src/generate";
 
 const config = new Config();
 
-new Generate(config).doGenerate();
+const generator = new Generate(config);
+// generator.doGenerateModels();
+generator.doGenerateServices();

@@ -35,6 +35,10 @@ export class Utils {
         return Utils.toFileName(typeName).concat('.').concat('model');
     }
 
+    static toServiceName(typeName: string): string {
+        return Utils.toFileName(typeName).concat('.').concat('service');
+    }
+
     static resolveRef(ref: string): string {
         if (ref.indexOf('#/') != 0) {
             return ref;
@@ -86,5 +90,20 @@ export class Utils {
 
             fs.rmdirSync(folderPath);
         }
+    }
+
+    static resolveApiName(apiName: string): string {
+        if (!apiName) {
+            return apiName;
+        } else {
+            const splits = apiName.split('/');
+            return splits[splits.length - 1];
+        }
+    }
+
+    static generateOutDirFolder(outDir: string): void {
+        const folderPath = path.resolve(__dirname, outDir);
+        Utils.rmdir(folderPath);
+        Utils.mkdirs(folderPath);
     }
 }

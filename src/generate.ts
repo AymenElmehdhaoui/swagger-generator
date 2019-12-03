@@ -2,19 +2,24 @@ import fs from "fs";
 import path from "path";
 import mustache from "mustache";
 import {map, tap} from "rxjs/operators";
-import {Observable} from "rxjs";
+import {Observable, of} from "rxjs";
+import _ from 'lodash';
 
 import {Config} from "./models/config.model";
 import {Property} from "./models/property.model";
 import {Model} from "./models/model.model";
 import {Utils} from "./utils";
-import _ from 'lodash';
+import {Service} from "./models/service.model";
+import {Parameter} from "./models/parameter.model";
+import {Operation} from "./models/operation.model";
 
 export class Generate {
-    public data$: Observable<any> = this.setData;
-    public usedModels$: Observable<Model[]> = this.getModels;
+    private data$: Observable<any> = this.setData;
+    private usedModels$: Observable<Model[]> = this.getModels;
+    private usedService$: Observable<Service> = this.getServices;
 
     constructor(private config: Config) {
+        Utils.generateOutDirFolder(config.outDir);
     }
 
     private get setData(): Observable<any> {
@@ -89,16 +94,66 @@ export class Generate {
             );
     }
 
-    doGenerate() {
+    private get getServices(): Observable<Service> {
+        return this.data$
+            .pipe(
+                map(data => data.paths),
+                map(paths => {
+                    const service: Service = new Service();
+                    const pathsKeys = Object.keys(paths);
+                    const imports: {name: string, filePath: string}[] = [];
+                    pathsKeys.map((pathKey) => {
+                        const endPoint = pathKey;
+                        const methods = paths[pathKey];
+                        const methodsKeys = Object.keys(methods);
+
+                        const ops: Operation[] = [];
+
+                        methodsKeys.map(methodKey => {
+                            const op = new Operation();
+                            op.endPoint = endPoint;
+                            op.method = methodKey;
+
+                            const methodData = methods[methodKey];
+                            op.tags = methodData.tags;
+                            op.summary = methodData.summary;
+                            op.description = methodData.description;
+                            op.operationId = methodData.operationId;
+                            const parametersMethod = methodData.parameters;
+                            const params: Parameter[] = [];
+                            parametersMethod.map((parameterMethod: any) => {
+                                const param = new Parameter();
+                                param.in = parameterMethod.in;
+                                param.description = parameterMethod.description;
+                                param.required = parameterMethod.required;
+                                if(parameterMethod.schema && parameterMethod.schema.$ref) {
+                                    const schemaRef = parameterMethod.schema.$ref;
+                                    const schema = Utils.resolveRef(schemaRef); // *
+                                    const schemaFileName = Utils.toModelName(schema);
+                                    param.schema = schema;
+                                    imports.push({name: schema, filePath: schemaFileName});
+                                }
+                                params.push(param);
+                            });
+                            op.parameters = params;
+                            ops.push(op);
+                        });
+
+                        service.operations = ops;
+                    });
+                    service.imports = imports;
+                    return service;
+                }),
+                map(service => {
+                    service.imports = _.uniqBy(service.imports, 'name');
+                    return service;
+                })
+            );
+    }
+
+    public doGenerateModels(): void {
         this.usedModels$
             .pipe(
-                tap(
-                    (models: Model[]) => {
-                        const folderPath = path.resolve(__dirname, this.config.outDir);
-                        Utils.rmdir(folderPath);
-                        Utils.mkdirs(folderPath);
-                    }
-                ),
                 tap(
                     (models: Model[]) => {
                         models.map((model: Model) => {
@@ -112,6 +167,20 @@ export class Generate {
                         });
                     }
                 )
+            )
+            .subscribe(console.log)
+    }
+
+    public doGenerateServices(): void {
+        this.usedService$
+            .pipe(
+                tap((service: Service) => {
+                    const viewPath = path.resolve(__dirname, 'templates/service.mustache');
+                    const template = fs.readFileSync(viewPath, 'utf-8').toString();
+                    const data = mustache.render(template, service);
+                    const to = path.resolve(__dirname, this.config.outDir, service.fileName.concat('.ts'));
+                    fs.writeFileSync(to, data, 'UTF-8');
+                })
             )
             .subscribe(console.log)
     }
