@@ -8,6 +8,7 @@ import {Config} from "./models/config.model";
 import {Property} from "./models/property.model";
 import {Model} from "./models/model.model";
 import {Utils} from "./utils";
+import _ from 'lodash';
 
 export class Generate {
     public data$: Observable<any> = this.setData;
@@ -46,7 +47,7 @@ export class Generate {
                         const fileName: string = Utils.toModelName(className);
                         const definitionProperties = definitions[key].properties;
                         const definitionPropertiesKeys = Object.keys(definitionProperties);
-                        const imports = new Set<{name: string, filePath: string}>();
+                        const imports: {name: string, filePath: string}[] = [];
 
                         let properties: Property[] = [];
 
@@ -59,14 +60,14 @@ export class Generate {
                             // complex type
                             if(typesDef.$ref) {
                                 type = Utils.resolveRef(typesDef.$ref);
-                                imports.add({name: type, filePath: Utils.toModelName(type)});
+                                imports.push({name: type, filePath: Utils.toModelName(type)});
                             }
                             type = Utils.resoleTypeNumber(type);
                             if (type === 'array') {
                                 if (typesDef.items.$ref) {
                                     p.of = Utils.resolveRef(typesDef.items.$ref);
                                     type = p.of.concat('[]');
-                                    imports.add({name: p.of, filePath: Utils.toModelName(p.of)});
+                                    imports.push({name: p.of, filePath: Utils.toModelName(p.of)});
                                 }
                             }
 
@@ -80,7 +81,7 @@ export class Generate {
                         model.fileName = fileName;
                         model.modelName = className;
                         model.properties = properties;
-                        model.imports = imports;
+                        model.imports = _.uniqBy(imports, "name");
                         models.push(model);
                     });
                     return models;
