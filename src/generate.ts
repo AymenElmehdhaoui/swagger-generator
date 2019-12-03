@@ -47,7 +47,7 @@ export class Generate {
                         const fileName: string = Utils.toModelName(className);
                         const definitionProperties = definitions[key].properties;
                         const definitionPropertiesKeys = Object.keys(definitionProperties);
-                        const imports = new Set<string>();
+                        const imports = new Set<{name: string, filePath: string}>();
 
                         let properties: Property[] = [];
 
@@ -59,14 +59,16 @@ export class Generate {
                             // complex type
                             if(typesDef.$ref) {
                                 type = Utils.resolveRef(typesDef.$ref);
-                                imports.add(type);
+
+                                imports.add({name: type, filePath: Utils.toModelName(type)});
+                                // imports.add(type);
                             }
                             type = Utils.resoleTypeNumber(type);
                             if (type === 'array') {
                                 type = Utils.capitalizeFirstLetter(type);
                                 if (typesDef.items.$ref) {
                                     p.of = Utils.resolveRef(typesDef.items.$ref);
-                                    imports.add(p.of);
+                                    imports.add({name: p.of, filePath: Utils.toModelName(p.of)});
                                 }
                             }
 
