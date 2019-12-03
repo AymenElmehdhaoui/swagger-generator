@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "tsc && node ./dist/server.js",
-    "tsc": "tsc"
+    "start": "npm run tsc && npm run copy-template && node ./dist/server.js",
+    "tsc": "tsc",
+    "copy-template": "copyfiles ./src/templates/** ./dist"
   },
   "author": "",
   "license": "ISC",
@@ -16,6 +17,7 @@
   "devDependencies": {
     "@types/mustache": "^0.8.32",
     "@types/node": "^12.12.14",
+    "copyfiles": "^2.1.1",
     "typescript": "^3.7.2"
   }
 }

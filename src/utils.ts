@@ -76,4 +76,15 @@ export class Utils {
             fs.mkdirSync(folders[i]);
         }
     }
+
+    static rmdir(folderPath: string) {
+        if (fs.existsSync(folderPath)) {
+            const files = fs.readdirSync(folderPath);
+            files.map(fileName => {
+                fs.unlinkSync(path.resolve(folderPath, fileName));
+            });
+
+            fs.rmdirSync(folderPath);
+        }
+    }
 }

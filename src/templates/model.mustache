@@ -2,10 +2,25 @@
 import { {{name}} } from './{{filePath}}';
 {{/imports}}
 
-export class {{ modelName }} {
+export interface I{{ modelName }} {
     {{#properties}}
-     {{key}}: {{ type }};
+    {{key}}?: {{ type }};
+    {{/properties}}
+}
+
+export class {{ modelName }} implements I{{ modelName }} {
+    {{#properties}}
+    public {{key}}?: {{ type }};
     {{/properties}}
 
-    constructor() {}
+    constructor(
+        i{{ modelName }}?: I{{ modelName }}
+    ) {
+        if (!i{{ modelName }}) {
+            i{{ modelName }} = {};
+        }
+    {{#properties}}
+        this.{{key}} = i{{ modelName }}.{{ key }};
+    {{/properties}}
+    }
 }
