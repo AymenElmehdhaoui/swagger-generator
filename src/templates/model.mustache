@@ -4,7 +4,7 @@ import { {{name}} } from './{{filePath}}';
 
 export interface I{{ modelName }} {
     {{#properties}}
-    {{key}}?: {{ type }};
+    {{key}}?: {{ type }};{{#description}} // {{description}} {{/description}}
     {{/properties}}
 }
 

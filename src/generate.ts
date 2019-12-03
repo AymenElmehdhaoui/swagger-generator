@@ -53,12 +53,12 @@ export class Generate {
                         definitionPropertiesKeys.map((defKey: string) => {
                             const typesDef = definitionProperties[defKey];
                             let type = typesDef.type || typesDef.$ref;
+                            const description = typesDef.format || (typesDef.enum ? "enum of " + typesDef.enum.toString() : null);
                             const p = new Property();
 
                             // complex type
                             if(typesDef.$ref) {
                                 type = Utils.resolveRef(typesDef.$ref);
-
                                 imports.add({name: type, filePath: Utils.toModelName(type)});
                             }
                             type = Utils.resoleTypeNumber(type);
@@ -72,6 +72,7 @@ export class Generate {
 
                             p.key = defKey;
                             p.type = type;
+                            p.description = description;
                             properties.push(p);
                         });
                         const model = new Model();
