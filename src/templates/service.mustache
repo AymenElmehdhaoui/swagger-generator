@@ -12,6 +12,16 @@ export class {{serviceName}} {
     constructor(private http: HttpClient) { }
 
     {{#operations}}
+    /**
+     *@return: {{returnType}}
+     {{#parameters}}
+     *@name: {{operationId}},
+     *@param: {{name}}: {{schema}},
+     {{/parameters}}
+     {{#description.length}}*{{#description}}@description: {{.}}{{/description}}{{/description.length}}
+     {{#summary.length}}*{{#summary}}Summary: {{.}}{{/summary}}{{/summary.length}}
+     {{#tags.length}}*{{#tags}}Tags: {{.}}{{/tags}}{{/tags.length}}
+    **/
     public {{operationId}}(
         {{#parameters}}
         {{name}}: {{schema}},

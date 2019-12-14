@@ -115,7 +115,7 @@ export class Generate {
                             op.method = methodKey;
 
                             const methodData = methods[methodKey];
-                            op.tags = methodData.tags;
+                            op.tags = (methodData.tags || []).join();
                             op.summary = methodData.summary;
                             op.description = methodData.description;
                             op.operationId = Utils.resolveOperationId(methodData.operationId);
@@ -129,9 +129,6 @@ export class Generate {
                                 param.name = parameterMethod.name;
 
                                 if (parameterMethod && parameterMethod.type === 'array'){
-                                    //todo : if param is array
-                                    console.log(parameterMethod)
-
                                     const items = parameterMethod.items;
                                     if (items.$ref) {
                                         const ref = items.$ref;
