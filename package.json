@@ -16,6 +16,8 @@
     "rxjs": "^6.5.3"
   },
   "devDependencies": {
+    "@angular/common": "^8.2.14",
+    "@angular/core": "^8.2.14",
     "@types/lodash": "^4.14.149",
     "@types/mustache": "^0.8.32",
     "@types/node": "^12.12.14",

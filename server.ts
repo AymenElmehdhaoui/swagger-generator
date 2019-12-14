@@ -4,5 +4,5 @@ import {Generate} from "./src/generate";
 const config = new Config();
 
 const generator = new Generate(config);
-// generator.doGenerateModels();
+generator.doGenerateModels();
 generator.doGenerateServices();

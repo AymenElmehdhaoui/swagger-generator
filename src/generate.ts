@@ -3,7 +3,7 @@ import path from "path";
 import mustache from "mustache";
 import {map, tap} from "rxjs/operators";
 import {Observable, of} from "rxjs";
-import _ from 'lodash';
+import {uniqBy as _uniqBy} from 'lodash';
 
 import {Config} from "./models/config.model";
 import {Property} from "./models/property.model";
@@ -24,7 +24,7 @@ export class Generate {
 
     private get setData(): Observable<any> {
         const filePath = path.resolve(this.config.filePath);
-        return  Utils.fileReader(filePath);
+        return Utils.fileReader(filePath);
     }
 
     private get getModels(): Observable<Model[]> {
@@ -38,8 +38,8 @@ export class Generate {
                         const elm = definitions[key];
                         const properties = elm.properties;
 
-                        if (properties && elm && !properties.prgRedirectUrl ) {
-                            data[key] =  elm;
+                        if (properties && elm && !properties.prgRedirectUrl) {
+                            data[key] = elm;
                         }
                     });
                     return data;
@@ -52,7 +52,7 @@ export class Generate {
                         const fileName: string = Utils.toModelName(className);
                         const definitionProperties = definitions[key].properties;
                         const definitionPropertiesKeys = Object.keys(definitionProperties);
-                        const imports: {name: string, filePath: string}[] = [];
+                        const imports: { name: string, filePath: string }[] = [];
 
                         let properties: Property[] = [];
 
@@ -63,7 +63,7 @@ export class Generate {
                             const p = new Property();
 
                             // complex type
-                            if(typesDef.$ref) {
+                            if (typesDef.$ref) {
                                 type = Utils.resolveRef(typesDef.$ref);
                                 imports.push({name: type, filePath: Utils.toModelName(type)});
                             }
@@ -86,7 +86,7 @@ export class Generate {
                         model.fileName = fileName;
                         model.modelName = className;
                         model.properties = properties;
-                        model.imports = _.uniqBy(imports, "name");
+                        model.imports = _uniqBy(imports, "name");
                         models.push(model);
                     });
                     return models;
@@ -97,17 +97,17 @@ export class Generate {
     private get getServices(): Observable<Service> {
         return this.data$
             .pipe(
-                map(data => data.paths),
-                map(paths => {
+                map(data => {
+                    const paths = data.paths;
                     const service: Service = new Service();
                     const pathsKeys = Object.keys(paths);
-                    const imports: {name: string, filePath: string}[] = [];
+                    const imports: { name: string, filePath: string }[] = [];
+                    const ops: Operation[] = [];
+
                     pathsKeys.map((pathKey) => {
                         const endPoint = pathKey;
                         const methods = paths[pathKey];
                         const methodsKeys = Object.keys(methods);
-
-                        const ops: Operation[] = [];
 
                         methodsKeys.map(methodKey => {
                             const op = new Operation();
@@ -126,26 +126,82 @@ export class Generate {
                                 param.in = parameterMethod.in;
                                 param.description = parameterMethod.description;
                                 param.required = parameterMethod.required;
-                                if(parameterMethod.schema && parameterMethod.schema.$ref) {
+                                param.name = parameterMethod.name;
+
+
+                                if (parameterMethod.schema && parameterMethod.schema.$ref) {
                                     const schemaRef = parameterMethod.schema.$ref;
                                     const schema = Utils.resolveRef(schemaRef); // *
                                     const schemaFileName = Utils.toModelName(schema);
                                     param.schema = schema;
                                     imports.push({name: schema, filePath: schemaFileName});
+                                } else {
+                                    param.schema = parameterMethod.type;
                                 }
                                 params.push(param);
                             });
                             op.parameters = params;
+
+
+                            if (methodData.responses && methodData.responses['200'] && methodData.responses['200'].schema) {
+                                const resultTypeKey = Utils.resolveRef(methodData.responses['200'].schema.$ref);
+                                if (data && data.definitions && data.definitions[resultTypeKey] && data.definitions[resultTypeKey].properties) {
+                                    const propertiesValue = data.definitions[resultTypeKey].properties.value;
+                                    if (propertiesValue.type === 'array') {
+                                        const items = propertiesValue.items;
+                                        if (items.$ref) {
+                                            const ref = Utils.resolveRef(items.$ref);
+                                            op.returnType = ref;
+                                            imports.push({name: ref, filePath: Utils.toModelName(ref)})
+                                        } else {
+                                            op.returnType = items.type;
+                                        }
+
+                                        op.returnType = op.returnType.concat('[]');
+                                    } else {
+                                        if (propertiesValue.$ref) {
+                                            const ref = Utils.resolveRef(propertiesValue.$ref);
+                                            op.returnType = ref;
+                                            imports.push({name: ref, filePath: Utils.toModelName(ref)})
+                                        } else {
+                                            op.returnType = propertiesValue.type;//
+                                        }
+                                    }
+                                }
+                            }
+
                             ops.push(op);
                         });
-
-                        service.operations = ops;
                     });
+                    service.operations = ops;
                     service.imports = imports;
                     return service;
                 }),
                 map(service => {
-                    service.imports = _.uniqBy(service.imports, 'name');
+                    service.imports = _uniqBy(service.imports, 'name');
+                    return service;
+                }),
+                map(service => {
+                    service.operations = service.operations.map((operation) => {
+                        if (operation.parameters) {
+                            operation.parameters.map(param => {
+                                if (param.in === 'query') {
+                                    if (!operation.httpParams) {
+                                        operation.httpParams= [];
+                                    }
+                                    operation.httpParams.push(param.name);
+                                }
+                                if (param.in === 'body') {
+                                    if (!operation.body) {
+                                        operation.body= [];
+                                    }
+                                    operation.body.push(param.name);
+                                }
+                                return param;
+                            });
+                        }
+                        return operation;
+                    });
                     return service;
                 })
             );
@@ -168,7 +224,7 @@ export class Generate {
                     }
                 )
             )
-            .subscribe(console.log)
+            .subscribe()
     }
 
     public doGenerateServices(): void {
@@ -184,7 +240,6 @@ export class Generate {
             )
             .subscribe(console.log)
     }
-
 
 
 }

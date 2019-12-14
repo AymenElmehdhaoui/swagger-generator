@@ -8,4 +8,7 @@ export class Operation {
     description?: string;
     operationId: string = "";
     parameters?: Parameter[];
+    returnType: string = "any";
+    httpParams?: string[];
+    body?: string[]
 }

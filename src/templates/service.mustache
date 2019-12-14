@@ -1,0 +1,34 @@
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+{{#imports}}
+import { {{name}} } from './{{filePath}}';
+{{/imports}}
+
+@Injectable({providedIn: 'root'})
+export class {{serviceName}} {
+    constructor(private http: HttpClient) { }
+
+    {{#operations}}
+    public {{operationId}}(
+        {{#parameters}}
+        {{name}}: {{schema}},
+        {{/parameters}}
+    ): Observable<{{returnType}}> {
+        {{#httpParams.length}}
+            const httpOptions = {
+                params: {
+                        {{#httpParams}}
+                            {{.}},
+                        {{/httpParams}}
+                        }
+            };
+        {{/httpParams.length}}
+
+        return this.http.{{method}}<{{returnType}}>(
+        '{{{endPoint}}}'{{#body.length}}, body{{/body.length}}{{#httpParams.length}},{{/httpParams.length}}
+        {{#httpParams.length}}httpOptions{{/httpParams.length}});
+    }
+    {{/operations}}
+}
