@@ -5,4 +5,5 @@ export class Service {
     fileName: string = 'base-service.service';
     operations: Operation[] = [];
     imports: {name: string, filePath: string}[] = [];
+    baseUrl: string = '';
 }

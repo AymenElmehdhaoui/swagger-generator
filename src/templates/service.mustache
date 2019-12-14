@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 {{#imports}}
@@ -8,6 +8,7 @@ import { {{name}} } from './{{filePath}}';
 
 @Injectable({providedIn: 'root'})
 export class {{serviceName}} {
+    private baseUrl = '{{{baseUrl}}}';
     constructor(private http: HttpClient) { }
 
     {{#operations}}
@@ -17,18 +18,15 @@ export class {{serviceName}} {
         {{/parameters}}
     ): Observable<{{returnType}}> {
         {{#httpParams.length}}
-            const httpOptions = {
-                params: {
-                        {{#httpParams}}
-                            {{.}},
-                        {{/httpParams}}
-                        }
-            };
+        let params = new HttpParams();
+        {{#httpParams}}
+        params = params.set('{{.}}', ''+{{.}});
+        {{/httpParams}}
         {{/httpParams.length}}
 
         return this.http.{{method}}<{{returnType}}>(
-        `{{{endPoint}}}`{{#body.length}}, { {{#body}} {{#isComplex}} ...{{key}} {{/isComplex}} {{^isComplex}} {{key}} {{/isComplex}} {{/body}} } {{/body.length}}{{#httpParams.length}},{{/httpParams.length}}
-        {{#httpParams.length}}httpOptions{{/httpParams.length}});
+        `${this.baseUrl}{{{endPoint}}}`{{#body.length}}, { {{#body}} {{#isComplex}} ...{{key}} {{/isComplex}} {{^isComplex}} {{key}} {{/isComplex}} {{/body}} } {{/body.length}}{{#httpParams.length}},{{/httpParams.length}}
+        {{#httpParams.length}}{params}{{/httpParams.length}});
     }
 
     {{/operations}}

@@ -128,16 +128,33 @@ export class Generate {
                                 param.required = parameterMethod.required;
                                 param.name = parameterMethod.name;
 
+                                if (parameterMethod && parameterMethod.type === 'array'){
+                                    //todo : if param is array
+                                    console.log(parameterMethod)
 
-                                if (parameterMethod.schema && parameterMethod.schema.$ref) {
-                                    const schemaRef = parameterMethod.schema.$ref;
-                                    const schema = Utils.resolveRef(schemaRef); // *
-                                    const schemaFileName = Utils.toModelName(schema);
-                                    param.schema = schema;
-                                    imports.push({name: schema, filePath: schemaFileName});
+                                    const items = parameterMethod.items;
+                                    if (items.$ref) {
+                                        const ref = items.$ref;
+                                        const schema = Utils.resolveRef(ref); // *
+                                        const schemaFileName = Utils.toModelName(schema);
+                                        param.schema = schema;
+                                        imports.push({name: schema, filePath: schemaFileName});
+                                    } else {
+                                        param.schema = Utils.resoleTypeNumber(items.type || 'any').concat('[]');
+                                    }
+
                                 } else {
-                                    param.schema = Utils.resoleTypeNumber(parameterMethod.type);
+                                    if (parameterMethod.schema && parameterMethod.schema.$ref) {
+                                        const schemaRef = parameterMethod.schema.$ref;
+                                        const schema = Utils.resolveRef(schemaRef); // *
+                                        const schemaFileName = Utils.toModelName(schema);
+                                        param.schema = schema;
+                                        imports.push({name: schema, filePath: schemaFileName});
+                                    } else {
+                                        param.schema = Utils.resoleTypeNumber(parameterMethod.type);
+                                    }
                                 }
+
                                 params.push(param);
                             });
                             op.parameters = params;
@@ -177,6 +194,24 @@ export class Generate {
                     });
                     service.operations = ops;
                     service.imports = imports;
+
+                    let baseUrl = '';
+                    if(data.schemes && data.schemes.length) {
+                        baseUrl = baseUrl.concat(data.schemes[0]);
+                    } else {
+                       baseUrl = baseUrl.concat('http');
+                    }
+                    baseUrl = baseUrl.concat('://');
+
+                    if(data.host) {
+                        baseUrl = baseUrl.concat(data.host);
+                    } else {
+                        baseUrl = baseUrl.concat('localhost:8080');
+                    }
+                    if(data.basePath) {
+                        baseUrl = baseUrl.concat(data.basePath);
+                    }
+                    service.baseUrl = baseUrl;
                     return service;
                 }),
                 map(service => {
