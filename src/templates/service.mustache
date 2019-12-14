@@ -16,7 +16,7 @@ export class {{serviceName}} {
      *@return: {{returnType}}
      {{#parameters}}
      *@name: {{operationId}},
-     *@param: {{name}}: {{schema}},
+     *@param: {{name}}: {{schema}}{{#description.length}}: in {{in}} {{#required}} : Required{{/required}} // {{description}} {{/description.length}},
      {{/parameters}}
      {{#description.length}}*{{#description}}@description: {{.}}{{/description}}{{/description.length}}
      {{#summary.length}}*{{#summary}}Summary: {{.}}{{/summary}}{{/summary.length}}
@@ -24,7 +24,7 @@ export class {{serviceName}} {
     **/
     public {{operationId}}(
         {{#parameters}}
-        {{name}}: {{schema}},
+        {{name}}{{^required}}?{{/required}}: {{schema}},
         {{/parameters}}
     ): Observable<{{returnType}}> {
         {{#httpParams.length}}
