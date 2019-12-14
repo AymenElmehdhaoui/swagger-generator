@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "npm run tsc && npm run copy-template && node ./dist/server.js",
+    "start": "npm run tsc && npm run copy-template && node ./dist/server.js && npm run tslint:output",
     "tsc": "tsc",
+    "tslint:output": "tslint -c tslint.config.angular.json './dist/src/output/**/*.ts' --fix --force",
     "copy-template": "copyfiles ./src/templates/** ./dist"
   },
   "author": "",
@@ -17,11 +18,14 @@
   },
   "devDependencies": {
     "@angular/common": "^8.2.14",
+    "@angular/compiler": "^8.2.14",
     "@angular/core": "^8.2.14",
     "@types/lodash": "^4.14.149",
     "@types/mustache": "^0.8.32",
     "@types/node": "^12.12.14",
+    "codelyzer": "^5.2.0",
     "copyfiles": "^2.1.1",
+    "tslint": "^5.20.1",
     "typescript": "^3.7.2"
   }
 }
