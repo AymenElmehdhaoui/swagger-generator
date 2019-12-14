@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 {{#imports}}
 import { {{name}} } from './{{filePath}}';
@@ -36,8 +37,24 @@ export class {{serviceName}} {
 
         return this.http.{{method}}<{{returnType}}>(
         `${this.baseUrl}{{{endPoint}}}`{{#body.length}}, { {{#body}} {{#isComplex}} ...{{key}} {{/isComplex}} {{^isComplex}} {{key}} {{/isComplex}} {{/body}} } {{/body.length}}{{#httpParams.length}},{{/httpParams.length}}
-        {{#httpParams.length}}{params}{{/httpParams.length}});
+        {{#httpParams.length}}{params}{{/httpParams.length}}).pipe(catchError(this.handleError));
     }
 
     {{/operations}}
+
+    /**
+    Credit: https://scotch.io/bar-talk/error-handling-with-angular-6-tips-and-best-practices192
+    **/
+    handleError(error: HttpErrorResponse) {
+        let errorMessage = '';
+        if (error.error instanceof ErrorEvent) {
+            // client-side error
+            errorMessage = `Error: ${error.error.message}`;
+        } else {
+            // server-side error
+            errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
+        }
+        window.alert(errorMessage);
+        return throwError(errorMessage);
+    }
 }
