@@ -27,7 +27,7 @@ export class {{serviceName}} {
         {{/httpParams.length}}
 
         return this.http.{{method}}<{{returnType}}>(
-        '{{{endPoint}}}'{{#body.length}}, body{{/body.length}}{{#httpParams.length}},{{/httpParams.length}}
+        `{{{endPoint}}}`{{#body.length}}, { {{#body}} {{#isComplex}} ...{{key}} {{/isComplex}} {{^isComplex}} {{key}} {{/isComplex}} {{/body}} } {{/body.length}}{{#httpParams.length}},{{/httpParams.length}}
         {{#httpParams.length}}httpOptions{{/httpParams.length}});
     }
 

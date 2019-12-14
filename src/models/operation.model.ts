@@ -10,5 +10,5 @@ export class Operation {
     parameters?: Parameter[];
     returnType: string = "any";
     httpParams?: string[];
-    body?: string[]
+    body?: {key: string, isComplex: boolean}[]
 }

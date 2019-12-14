@@ -1,6 +1,7 @@
 import {Observable, Observer} from "rxjs";
 import fs from "fs";
 import path from "path";
+import { replace as _replace} from "lodash";
 
 export class Utils {
     static fileReader (path: string): Observable<any> {
@@ -105,5 +106,21 @@ export class Utils {
         const folderPath = path.resolve(__dirname, outDir);
         Utils.rmdir(folderPath);
         Utils.mkdirs(folderPath);
+    }
+
+    static resolveServicePathParam(path: string): string {
+        if(!path) {
+            return path;
+        } else {
+            return _replace(path, new RegExp("{","g"),"${");
+        }
+    }
+
+    static resolveOperationId(operationId: string): string {
+        if(!operationId) {
+            return operationId;
+        } else {
+            return operationId.split(' ').join('');
+        }
     }
 }

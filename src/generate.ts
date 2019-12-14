@@ -33,7 +33,7 @@ export class Generate {
                 map(data => data.definitions),
                 map(definitions => {
                     let data: any = {};
-                    const keys = Object.keys(definitions);
+                    const keys = Object.keys(definitions || {});
                     keys.map(key => {
                         const elm = definitions[key];
                         const properties = elm.properties;
@@ -46,7 +46,7 @@ export class Generate {
                 }),
                 map(definitions => {
                     const models: Model[] = [];
-                    const keys = Object.keys(definitions);
+                    const keys = Object.keys(definitions || {});
                     keys.map(key => {
                         const className: string = key;
                         const fileName: string = Utils.toModelName(className);
@@ -118,8 +118,8 @@ export class Generate {
                             op.tags = methodData.tags;
                             op.summary = methodData.summary;
                             op.description = methodData.description;
-                            op.operationId = methodData.operationId;
-                            const parametersMethod = methodData.parameters;
+                            op.operationId = Utils.resolveOperationId(methodData.operationId);
+                            const parametersMethod = methodData.parameters || [];
                             const params: Parameter[] = [];
                             parametersMethod.map((parameterMethod: any) => {
                                 const param = new Parameter();
@@ -136,7 +136,7 @@ export class Generate {
                                     param.schema = schema;
                                     imports.push({name: schema, filePath: schemaFileName});
                                 } else {
-                                    param.schema = parameterMethod.type;
+                                    param.schema = Utils.resoleTypeNumber(parameterMethod.type);
                                 }
                                 params.push(param);
                             });
@@ -144,27 +144,29 @@ export class Generate {
 
 
                             if (methodData.responses && methodData.responses['200'] && methodData.responses['200'].schema) {
-                                const resultTypeKey = Utils.resolveRef(methodData.responses['200'].schema.$ref);
-                                if (data && data.definitions && data.definitions[resultTypeKey] && data.definitions[resultTypeKey].properties) {
-                                    const propertiesValue = data.definitions[resultTypeKey].properties.value;
-                                    if (propertiesValue.type === 'array') {
-                                        const items = propertiesValue.items;
-                                        if (items.$ref) {
-                                            const ref = Utils.resolveRef(items.$ref);
-                                            op.returnType = ref;
-                                            imports.push({name: ref, filePath: Utils.toModelName(ref)})
-                                        } else {
-                                            op.returnType = items.type;
-                                        }
+                                if (methodData.responses['200'].schema.$ref) {
+                                    const resultTypeKey = Utils.resolveRef(methodData.responses['200'].schema.$ref);
+                                    if (data && data.definitions && data.definitions[resultTypeKey] && data.definitions[resultTypeKey].properties) {
+                                        const propertiesValue = data.definitions[resultTypeKey].properties.value;
+                                        if (propertiesValue.type === 'array') {
+                                            const items = propertiesValue.items;
+                                            if (items.$ref) {
+                                                const ref = Utils.resolveRef(items.$ref);
+                                                op.returnType = ref;
+                                                imports.push({name: ref, filePath: Utils.toModelName(ref)})
+                                            } else {
+                                                op.returnType = items.type;
+                                            }
 
-                                        op.returnType = op.returnType.concat('[]');
-                                    } else {
-                                        if (propertiesValue.$ref) {
-                                            const ref = Utils.resolveRef(propertiesValue.$ref);
-                                            op.returnType = ref;
-                                            imports.push({name: ref, filePath: Utils.toModelName(ref)})
+                                            op.returnType = op.returnType.concat('[]');
                                         } else {
-                                            op.returnType = propertiesValue.type;//
+                                            if (propertiesValue.$ref) {
+                                                const ref = Utils.resolveRef(propertiesValue.$ref);
+                                                op.returnType = ref;
+                                                imports.push({name: ref, filePath: Utils.toModelName(ref)})
+                                            } else {
+                                                op.returnType = propertiesValue.type;//
+                                            }
                                         }
                                     }
                                 }
@@ -195,12 +197,25 @@ export class Generate {
                                     if (!operation.body) {
                                         operation.body= [];
                                     }
-                                    operation.body.push(param.name);
+                                    let isComplex = false;
+                                    service.imports.map(elm => {
+                                        if(elm.name === param.schema && isComplex === false) {
+                                            isComplex = true;
+                                        }
+                                    });
+                                    operation.body.push({key: param.name, isComplex});
                                 }
                                 return param;
                             });
                         }
                         return operation;
+                    });
+                    return service;
+                }),
+                map(service => {
+                    service.operations = (service.operations || []).map(operation => {
+                        operation.endPoint = Utils.resolveServicePathParam(operation.endPoint);
+                       return operation;
                     });
                     return service;
                 })
@@ -238,7 +253,7 @@ export class Generate {
                     fs.writeFileSync(to, data, 'UTF-8');
                 })
             )
-            .subscribe(console.log)
+            .subscribe()
     }
 
 

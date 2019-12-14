@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "npm run tsc && npm run copy-template && node ./dist/server.js && npm run tslint:output",
+    "start": "npm run tsc && npm run copy-template && node ./dist/server.js",
     "tsc": "tsc",
-    "tslint:output": "tslint -c tslint.config.angular.json './dist/src/output/**/*.ts' --fix --force",
+    "tslint:output": "tslint -c tslint.config.angular.json './dist/src/output/**/*.ts' --fix",
     "copy-template": "copyfiles ./src/templates/** ./dist"
   },
   "author": "",
