@@ -103,7 +103,7 @@ export class Utils {
     }
 
     static generateOutDirFolder(outDir: string): void {
-        const folderPath = path.resolve(__dirname, outDir);
+        const folderPath = path.normalize(outDir);
         Utils.rmdir(folderPath);
         Utils.mkdirs(folderPath);
     }

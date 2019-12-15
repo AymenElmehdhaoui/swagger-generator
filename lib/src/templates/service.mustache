@@ -1,0 +1,60 @@
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+
+{{#imports}}
+import { {{name}} } from './{{filePath}}';
+{{/imports}}
+
+@Injectable({providedIn: 'root'})
+export class {{serviceName}} {
+    private baseUrl = '{{{baseUrl}}}';
+    constructor(private http: HttpClient) { }
+
+    {{#operations}}
+    /**
+     *@return: {{returnType}}
+     {{#parameters}}
+     *@name: {{operationId}},
+     *@param: {{name}}: {{schema}}{{#description.length}}: in {{in}} {{#required}} : Required{{/required}} // {{description}} {{/description.length}},
+     {{/parameters}}
+     {{#description.length}}*{{#description}}@description: {{.}}{{/description}}{{/description.length}}
+     {{#summary.length}}*{{#summary}}Summary: {{.}}{{/summary}}{{/summary.length}}
+     {{#tags.length}}*{{#tags}}Tags: {{.}}{{/tags}}{{/tags.length}}
+    **/
+    public {{operationId}}(
+        {{#parameters}}
+        {{name}}{{^required}}?{{/required}}: {{schema}},
+        {{/parameters}}
+    ): Observable<{{returnType}}> {
+        {{#httpParams.length}}
+        let params = new HttpParams();
+        {{#httpParams}}
+        params = params.set('{{.}}', ''+{{.}});
+        {{/httpParams}}
+        {{/httpParams.length}}
+
+        return this.http.{{method}}<{{returnType}}>(
+        `${this.baseUrl}{{{endPoint}}}`{{#body.length}}, { {{#body}} {{#isComplex}} ...{{key}} {{/isComplex}} {{^isComplex}} {{key}} {{/isComplex}} {{/body}} } {{/body.length}}{{#httpParams.length}},{{/httpParams.length}}
+        {{#httpParams.length}}{params}{{/httpParams.length}}).pipe(catchError(this.handleError));
+    }
+
+    {{/operations}}
+
+    /**
+    Credit: https://scotch.io/bar-talk/error-handling-with-angular-6-tips-and-best-practices192
+    **/
+    handleError(error: HttpErrorResponse) {
+        let errorMessage = '';
+        if (error.error instanceof ErrorEvent) {
+            // client-side error
+            errorMessage = `Error: ${error.error.message}`;
+        } else {
+            // server-side error
+            errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
+        }
+        window.alert(errorMessage);
+        return throwError(errorMessage);
+    }
+}

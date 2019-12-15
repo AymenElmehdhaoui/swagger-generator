@@ -2,18 +2,28 @@
   "name": "generate-swagger",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "./lib/index.js",
+  "bin": {
+    "ngx-swagger": "./lib/index.js"
+  },
   "scripts": {
-    "start": "npm run tsc && npm run copy-template && node ./dist/server.js",
-    "tsc": "tsc",
-    "tslint:output": "tslint -c tslint.config.angular.json './dist/src/output/**/*.ts' --fix",
-    "copy-template": "copyfiles ./src/templates/** ./dist"
+    "start": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
+    "create": "npm run build && npm run copy-template && npm run test",
+    "build": "tsc -p .",
+    "copy-template": "copyfiles ./src/templates/** ./lib",
+    "test": "npm i -g && ngx-swagger -i swagger.json -o lib/dist",
+    "refresh": "rm -rf ./node_modules ./package-lock.json && npm install"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "chalk": "^3.0.0",
+    "clear": "^0.1.0",
+    "commander": "^4.0.1",
+    "figlet": "^1.2.4",
     "lodash": "^4.17.15",
     "mustache": "^3.1.0",
+    "path": "^0.12.7",
     "rxjs": "^6.5.3"
   },
   "devDependencies": {
@@ -22,10 +32,12 @@
     "@angular/core": "^8.2.14",
     "@types/lodash": "^4.14.149",
     "@types/mustache": "^0.8.32",
-    "@types/node": "^12.12.14",
+    "@types/node": "^12.12.17",
     "codelyzer": "^5.2.0",
     "copyfiles": "^2.1.1",
+    "nodemon": "^2.0.2",
+    "ts-node": "^8.5.4",
     "tslint": "^5.20.1",
-    "typescript": "^3.7.2"
+    "typescript": "^3.7.3"
   }
 }

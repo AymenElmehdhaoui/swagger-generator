@@ -1,0 +1,26 @@
+{{#imports}}
+import { {{name}} } from './{{filePath}}';
+{{/imports}}
+
+export interface I{{ modelName }} {
+    {{#properties}}
+    {{key}}?: {{ type }};{{#description}} // {{description}} {{/description}}
+    {{/properties}}
+}
+
+export class {{ modelName }} implements I{{ modelName }} {
+    {{#properties}}
+    public {{key}}?: {{ type }};
+    {{/properties}}
+
+    constructor(
+        i{{ modelName }}?: I{{ modelName }}
+    ) {
+        if (!i{{ modelName }}) {
+            i{{ modelName }} = {};
+        }
+    {{#properties}}
+        this.{{key}} = i{{ modelName }}.{{ key }};
+    {{/properties}}
+    }
+}

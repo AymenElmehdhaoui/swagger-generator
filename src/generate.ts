@@ -12,6 +12,8 @@ import {Utils} from "./utils";
 import {Service} from "./models/service.model";
 import {Parameter} from "./models/parameter.model";
 import {Operation} from "./models/operation.model";
+import {doGenerate} from "./server";
+import chalk from "chalk";
 
 export class Generate {
     private data$: Observable<any> = this.setData;
@@ -23,7 +25,7 @@ export class Generate {
     }
 
     private get setData(): Observable<any> {
-        const filePath = path.resolve(this.config.filePath);
+        const filePath = path.normalize(this.config.filePath);
         return Utils.fileReader(filePath);
     }
 
@@ -260,13 +262,15 @@ export class Generate {
                 tap(
                     (models: Model[]) => {
                         models.map((model: Model) => {
-                            const viewPath = path.resolve(__dirname, 'templates/model.mustache');
+                            const viewPath = path.resolve('./src/templates/model.mustache');
                             const template = fs.readFileSync(viewPath, 'utf-8').toString();
                             const modelCopy: any = {...model};
                             modelCopy.imports = Array.from(model.imports);
                             const data = mustache.render(template, modelCopy);
-                            const to = path.resolve(__dirname, this.config.outDir, model.fileName.concat('.ts'));
+                            const to = path.join(this.config.outDir, model.fileName.concat('.ts'));
                             fs.writeFileSync(to, data, 'UTF-8');
+
+                            console.log(chalk.green("Generate model:", model.fileName));
                         });
                     }
                 )
@@ -278,10 +282,12 @@ export class Generate {
         this.usedService$
             .pipe(
                 tap((service: Service) => {
-                    const viewPath = path.resolve(__dirname, 'templates/service.mustache');
+                    const viewPath = path.resolve('./src/templates/service.mustache');
                     const template = fs.readFileSync(viewPath, 'utf-8').toString();
                     const data = mustache.render(template, service);
-                    const to = path.resolve(__dirname, this.config.outDir, service.fileName.concat('.ts'));
+                    const to = path.join(this.config.outDir, service.fileName.concat('.ts'));
+
+                    console.log(chalk.green("Generate Service:", service.fileName));
                     fs.writeFileSync(to, data, 'UTF-8');
                 })
             )
