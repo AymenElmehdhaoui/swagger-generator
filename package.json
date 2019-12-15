@@ -1,6 +1,6 @@
 {
-  "name": "generate-swagger",
-  "version": "1.0.0",
+  "name": "ngx-swagger",
+  "version": "1.0.2",
   "description": "",
   "main": "./lib/index.js",
   "bin": {
@@ -14,7 +14,7 @@
     "test": "npm i -g && ngx-swagger -i swagger.json -o lib/dist",
     "refresh": "rm -rf ./node_modules ./package-lock.json && npm install"
   },
-  "author": "",
+  "author": "Aymen Elmehdhaoui",
   "license": "ISC",
   "dependencies": {
     "chalk": "^3.0.0",

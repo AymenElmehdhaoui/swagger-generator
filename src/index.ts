@@ -20,7 +20,7 @@ console.log(
 );
 
 program
-    .version('1.0.1')
+    .version('1.0.2')
     .description("Angular Generator for Models and services from Swagger 2.0 config file")
     .requiredOption('-o, --output', 'Output path')
     .requiredOption('-i, --input', 'path to Swagger 2.0 json config file')
