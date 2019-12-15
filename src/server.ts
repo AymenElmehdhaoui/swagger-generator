@@ -1,4 +1,5 @@
 import chalk from "chalk";
+
 import {Config} from "./models/config.model";
 import {Generate} from "./generate";
 

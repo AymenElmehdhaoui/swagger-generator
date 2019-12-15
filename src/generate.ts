@@ -2,18 +2,17 @@ import fs from "fs";
 import path from "path";
 import mustache from "mustache";
 import {map, tap} from "rxjs/operators";
-import {Observable, of} from "rxjs";
+import {Observable} from "rxjs";
+import chalk from "chalk";
 import {uniqBy as _uniqBy} from 'lodash';
 
 import {Config} from "./models/config.model";
 import {Property} from "./models/property.model";
 import {Model} from "./models/model.model";
-import {Utils} from "./utils";
 import {Service} from "./models/service.model";
 import {Parameter} from "./models/parameter.model";
 import {Operation} from "./models/operation.model";
-import {doGenerate} from "./server";
-import chalk from "chalk";
+import {Utils} from "./utils";
 
 export class Generate {
     private data$: Observable<any> = this.setData;
@@ -21,12 +20,22 @@ export class Generate {
     private usedService$: Observable<Service> = this.getServices;
 
     constructor(private config: Config) {
-        Utils.generateOutDirFolder(config.outDir);
     }
 
     private get setData(): Observable<any> {
-        const filePath = path.normalize(this.config.filePath);
-        return Utils.fileReader(filePath);
+        const filePath = path.resolve(this.config.filePath);
+        const data = Utils.fileReader(filePath);
+        return data.pipe(
+            map(
+                d => {
+                    if (d && d.swagger) {
+                        return d;
+                    } else {
+                        process.exit(0);
+                    }
+                }
+            )
+        );
     }
 
     private get getModels(): Observable<Model[]> {
@@ -130,7 +139,7 @@ export class Generate {
                                 param.required = parameterMethod.required;
                                 param.name = parameterMethod.name;
 
-                                if (parameterMethod && parameterMethod.type === 'array'){
+                                if (parameterMethod && parameterMethod.type === 'array') {
                                     const items = parameterMethod.items;
                                     if (items.$ref) {
                                         const ref = items.$ref;
@@ -195,19 +204,19 @@ export class Generate {
                     service.imports = imports;
 
                     let baseUrl = '';
-                    if(data.schemes && data.schemes.length) {
+                    if (data.schemes && data.schemes.length) {
                         baseUrl = baseUrl.concat(data.schemes[0]);
                     } else {
-                       baseUrl = baseUrl.concat('http');
+                        baseUrl = baseUrl.concat('http');
                     }
                     baseUrl = baseUrl.concat('://');
 
-                    if(data.host) {
+                    if (data.host) {
                         baseUrl = baseUrl.concat(data.host);
                     } else {
                         baseUrl = baseUrl.concat('localhost:8080');
                     }
-                    if(data.basePath) {
+                    if (data.basePath) {
                         baseUrl = baseUrl.concat(data.basePath);
                     }
                     service.baseUrl = baseUrl;
@@ -223,17 +232,17 @@ export class Generate {
                             operation.parameters.map(param => {
                                 if (param.in === 'query') {
                                     if (!operation.httpParams) {
-                                        operation.httpParams= [];
+                                        operation.httpParams = [];
                                     }
                                     operation.httpParams.push(param.name);
                                 }
                                 if (param.in === 'body') {
                                     if (!operation.body) {
-                                        operation.body= [];
+                                        operation.body = [];
                                     }
                                     let isComplex = false;
                                     service.imports.map(elm => {
-                                        if(elm.name === param.schema && isComplex === false) {
+                                        if (elm.name === param.schema && isComplex === false) {
                                             isComplex = true;
                                         }
                                     });
@@ -249,7 +258,7 @@ export class Generate {
                 map(service => {
                     service.operations = (service.operations || []).map(operation => {
                         operation.endPoint = Utils.resolveServicePathParam(operation.endPoint);
-                       return operation;
+                        return operation;
                     });
                     return service;
                 })
@@ -261,9 +270,8 @@ export class Generate {
             .pipe(
                 tap(
                     (models: Model[]) => {
+                        const template = Utils.getTemplate('./src/templates/model.mustache');
                         models.map((model: Model) => {
-                            const viewPath = path.resolve('./src/templates/model.mustache');
-                            const template = fs.readFileSync(viewPath, 'utf-8').toString();
                             const modelCopy: any = {...model};
                             modelCopy.imports = Array.from(model.imports);
                             const data = mustache.render(template, modelCopy);
@@ -282,8 +290,7 @@ export class Generate {
         this.usedService$
             .pipe(
                 tap((service: Service) => {
-                    const viewPath = path.resolve('./src/templates/service.mustache');
-                    const template = fs.readFileSync(viewPath, 'utf-8').toString();
+                    const template = Utils.getTemplate('/src/templates/service.mustache');
                     const data = mustache.render(template, service);
                     const to = path.join(this.config.outDir, service.fileName.concat('.ts'));
 

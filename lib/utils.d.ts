@@ -7,10 +7,8 @@ export declare class Utils {
     static resolveRef(ref: string): string;
     static resoleTypeNumber(type: string): string;
     static capitalizeFirstLetter(str: string): string;
-    static mkdirs(folderPath: string): void;
-    static rmdir(folderPath: string): void;
     static resolveApiName(apiName: string): string;
-    static generateOutDirFolder(outDir: string): void;
     static resolveServicePathParam(path: string): string;
     static resolveOperationId(operationId: string): string;
+    static getTemplate(from: string): string;
 }

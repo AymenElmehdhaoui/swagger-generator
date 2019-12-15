@@ -2,6 +2,7 @@ import {Observable, Observer} from "rxjs";
 import fs from "fs";
 import path from "path";
 import { replace as _replace} from "lodash";
+import {getPath} from "global-modules-path";
 
 export class Utils {
     static fileReader (path: string): Observable<any> {
@@ -67,32 +68,6 @@ export class Utils {
         else return str[0].toUpperCase() + str.slice(1);
     }
 
-    static mkdirs(folderPath: string) {
-        const folders = [];
-        let tmpPath = path.normalize(folderPath);
-        let exists = fs.existsSync(tmpPath);
-        while (!exists) {
-            folders.push(tmpPath);
-            tmpPath = path.join(tmpPath, '..');
-            exists = fs.existsSync(tmpPath);
-        }
-
-        for (let i = folders.length - 1; i >= 0; i--) {
-            fs.mkdirSync(folders[i]);
-        }
-    }
-
-    static rmdir(folderPath: string) {
-        if (fs.existsSync(folderPath)) {
-            const files = fs.readdirSync(folderPath);
-            files.map(fileName => {
-                fs.unlinkSync(path.resolve(folderPath, fileName));
-            });
-
-            fs.rmdirSync(folderPath);
-        }
-    }
-
     static resolveApiName(apiName: string): string {
         if (!apiName) {
             return apiName;
@@ -100,12 +75,6 @@ export class Utils {
             const splits = apiName.split('/');
             return splits[splits.length - 1];
         }
-    }
-
-    static generateOutDirFolder(outDir: string): void {
-        const folderPath = path.normalize(outDir);
-        Utils.rmdir(folderPath);
-        Utils.mkdirs(folderPath);
     }
 
     static resolveServicePathParam(path: string): string {
@@ -122,5 +91,12 @@ export class Utils {
         } else {
             return operationId.split(' ').join('');
         }
+    }
+
+    static getTemplate(from: string): string  {
+        const packagePath = getPath("ngx-swagger") || '';
+        const viewPath = path.join(packagePath, from);
+        const template = fs.readFileSync(viewPath, 'utf-8').toString();
+        return template;
     }
 }

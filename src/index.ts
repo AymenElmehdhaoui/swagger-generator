@@ -1,10 +1,12 @@
 #!/usr/bin/env node
-import {doGenerate} from "./server";
+import chalk from "chalk";
+import clear from "clear";
+import figlet from "figlet";
+import program from "commander";
+import path from "path";
+import fs from "fs";
 
-const chalk = require('chalk');
-const clear = require('clear');
-const figlet = require('figlet');
-const program = require('commander');
+import {doGenerate} from "./server";
 
 clear();
 console.log(
@@ -32,9 +34,35 @@ if (!process.argv.slice(2).length) {
 }
 
 const args = program.args;
+const from = path.resolve(args[0]);
+const to = path.resolve(args[1]);
 
-console.log(chalk.green("from:", args[0]));
-console.log(chalk.green("to:", args[1]));
-console.log(chalk.green("--------------------------------"));
-doGenerate(args[0], args[1]);
+fs.stat(from, (errFrom, statsFrom) => {
+    if (!errFrom) {
+        if (statsFrom.isFile()) {
+            if (from.endsWith('.json')) {
+                fs.stat(to, (errTo, statsTo) => {
+                    if(!errTo) {
+                        if (statsTo.isDirectory()) {
+                            console.log(chalk.green("from:", from));
+                            console.log(chalk.green("to:", to));
+                            console.log(chalk.green("--------------------------------"));
+                            doGenerate(args[0], args[1]);
+                        } else {
+                            console.log('Output not folder')
+                        }
+                    } else {
+                        console.log(errTo);
+                    }
+                });
+            } else {
+                console.log('Not json file')
+            }
+        } else {
+            console.error('Input not a file')
+        }
+    } else {
+        console.error(errFrom);
+    }
+});
 
