@@ -89,7 +89,8 @@ export class Utils {
         if(!operationId) {
             return operationId;
         } else {
-            return operationId.split(' ').join('');
+            const upper = operationId.split(' ').join('');
+            return  upper.charAt(0).toLowerCase() + upper.substring(1);
         }
     }
 

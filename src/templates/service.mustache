@@ -15,8 +15,8 @@ export class {{serviceName}} {
     {{#operations}}
     /**
      *@return: {{returnType}}
-     {{#parameters}}
      *@name: {{operationId}},
+     {{#parameters}}
      *@param: {{name}}: {{schema}}{{#description.length}}: in {{in}} {{#required}} : Required{{/required}} // {{description}} {{/description.length}},
      {{/parameters}}
      {{#description.length}}*{{#description}}@description: {{.}}{{/description}}{{/description.length}}
@@ -42,9 +42,7 @@ export class {{serviceName}} {
 
     {{/operations}}
 
-    /**
-    Credit: https://scotch.io/bar-talk/error-handling-with-angular-6-tips-and-best-practices192
-    **/
+
     handleError(error: HttpErrorResponse) {
         let errorMessage = '';
         if (error.error instanceof ErrorEvent) {

@@ -15,8 +15,8 @@ export class {{serviceName}} {
     {{#operations}}
     /**
      *@return: {{returnType}}
-     {{#parameters}}
      *@name: {{operationId}},
+     {{#parameters}}
      *@param: {{name}}: {{schema}}{{#description.length}}: in {{in}} {{#required}} : Required{{/required}} // {{description}} {{/description.length}},
      {{/parameters}}
      {{#description.length}}*{{#description}}@description: {{.}}{{/description}}{{/description.length}}

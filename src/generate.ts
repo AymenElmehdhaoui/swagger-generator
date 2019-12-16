@@ -167,35 +167,48 @@ export class Generate {
                             });
                             op.parameters = params;
 
+                            if (methodData && methodData.responses) {
+                                const successHttpCodes = Object.keys(methodData.responses).filter(code => code && code.startsWith('2'));
+                                successHttpCodes.map(code => {
+                                    if (methodData.responses && methodData.responses[code] && methodData.responses[code].schema) {
+                                        if (methodData.responses[code].schema.$ref) {
+                                            const resultTypeKey = Utils.resolveRef(methodData.responses[code].schema.$ref);
+                                            if (data && data.definitions && data.definitions[resultTypeKey] && data.definitions[resultTypeKey].properties) {
+                                                let propertiesValue = data.definitions[resultTypeKey].properties.value;
+                                                if (!propertiesValue) {
+                                                    const keys = Object.keys(data.definitions[resultTypeKey].properties);
+                                                    if(keys && keys.length) {
+                                                        propertiesValue = data.definitions[resultTypeKey].properties[keys[0]];
+                                                    }
+                                                }
 
-                            if (methodData.responses && methodData.responses['200'] && methodData.responses['200'].schema) {
-                                if (methodData.responses['200'].schema.$ref) {
-                                    const resultTypeKey = Utils.resolveRef(methodData.responses['200'].schema.$ref);
-                                    if (data && data.definitions && data.definitions[resultTypeKey] && data.definitions[resultTypeKey].properties) {
-                                        const propertiesValue = data.definitions[resultTypeKey].properties.value;
-                                        if (propertiesValue.type === 'array') {
-                                            const items = propertiesValue.items;
-                                            if (items.$ref) {
-                                                const ref = Utils.resolveRef(items.$ref);
-                                                op.returnType = ref;
-                                                imports.push({name: ref, filePath: Utils.toModelName(ref)})
-                                            } else {
-                                                op.returnType = items.type;
-                                            }
+                                                if (propertiesValue && propertiesValue.type === 'array') {
+                                                    const items = propertiesValue.items;
+                                                    if (items.$ref) {
+                                                        const ref = Utils.resolveRef(items.$ref);
+                                                        op.returnType = ref;
+                                                        imports.push({name: ref, filePath: Utils.toModelName(ref)})
+                                                    } else {
+                                                        op.returnType = items.type;
+                                                    }
 
-                                            op.returnType = op.returnType.concat('[]');
-                                        } else {
-                                            if (propertiesValue.$ref) {
-                                                const ref = Utils.resolveRef(propertiesValue.$ref);
-                                                op.returnType = ref;
-                                                imports.push({name: ref, filePath: Utils.toModelName(ref)})
-                                            } else {
-                                                op.returnType = propertiesValue.type;//
+                                                    op.returnType = op.returnType.concat('[]');
+                                                } else {
+                                                    if (propertiesValue && propertiesValue.$ref) {
+                                                        const ref = Utils.resolveRef(propertiesValue.$ref);
+                                                        op.returnType = ref;
+                                                        imports.push({name: ref, filePath: Utils.toModelName(ref)})
+                                                    } else {
+                                                        op.returnType = propertiesValue.type;//
+                                                    }
+
+                                                }
                                             }
                                         }
                                     }
-                                }
+                                });
                             }
+
 
                             ops.push(op);
                         });
